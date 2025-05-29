@@ -1,4 +1,3 @@
-*.png
 *.json
 *.pkl
 *.wav
@@ -6,3 +5,4 @@
 Prompt/
 test.py
 CodeVector/__pycache__/
+Data/CodeVector/*.png

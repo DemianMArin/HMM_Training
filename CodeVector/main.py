@@ -515,7 +515,7 @@ def main():
         centroids, generations = create_codevector_from_frames(
             all_train_frames, 
             codevector_output_dir,
-            centroids_quantity=4,
+            centroids_quantity=64,
             max_iterations=100,
             # epsilon=0.001,
             type_distance=ITAKURA
