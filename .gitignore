@@ -1,0 +1,8 @@
+*.png
+*.json
+*.pkl
+*.wav
+*.npy
+Prompt/
+test.py
+CodeVector/__pycache__/
