@@ -299,7 +299,7 @@ def plot_centroid_distribution(analysis: Dict, save_path: str = None):
 
     # Set maximum number of ticks
     plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=16))
-    plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=5))
+    plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=12))
 
     # Plot centroid usage over centroid IDs
     plt.subplot(1, 2, 2)
@@ -310,8 +310,8 @@ def plot_centroid_distribution(analysis: Dict, save_path: str = None):
     plt.grid(True, alpha=0.3)
 
     # Set maximum number of ticks
-    plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=4))
-    plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=10))
+    plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=16))
+    plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=20))
 
     plt.tight_layout()
     
