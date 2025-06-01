@@ -586,6 +586,10 @@ if __name__ == "__main__":
             print(f"Error: Unknown feature type '{sys.argv[1]}'")
             print_usage()
             sys.exit(1)
+    else:
+        print_usage()
+        sys.exit(1)
+
     
     if len(sys.argv) > 2:
         base_dir = sys.argv[2]

@@ -380,7 +380,6 @@ class CentroidDataMFCC:
     id: int = 0
 
     def __post_init__(self):
-
         self.mfcc.flatten()
 
     def to_dict(self):
@@ -492,15 +491,16 @@ class DataStorage:
     """Class to handle saving and loading data."""
     
     @staticmethod
-    def save_raw_data(raw_data_list, filepath: str):
+    def save_raw_data(raw_data_list, filepath: str, print_messages=False):
         """Save raw data to JSON file (works with both RawData, RawDataTraining, RawDataMFCC)."""
         data = [frame.to_dict() for frame in raw_data_list]
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
-        print(f"    Saved {len(raw_data_list)} frames to {filepath}")
+        if print_messages:
+            print(f"    Saved {len(raw_data_list)} frames to {filepath}")
     
     @staticmethod
-    def load_raw_data(filepath: str, data_type: str = 'auto'):
+    def load_raw_data(filepath: str, data_type: str = 'auto', print_messages = True):
         """Load raw data from JSON file.
         
         Args:
@@ -526,11 +526,12 @@ class DataStorage:
         else:  # 'hmm' or 'test'
             raw_data_list = [RawDataTraining.from_dict(frame_data) for frame_data in data]
         
-        print(f"  Loaded {len(raw_data_list)} frames from {filepath}")
+        if print_messages:
+            print(f"  Loaded {len(raw_data_list)} frames from {filepath}")
         return raw_data_list
 
     @staticmethod
-    def load_raw_data_mfcc(filepath: str, data_type: str = 'auto'):
+    def load_raw_data_mfcc(filepath: str, data_type: str = 'auto', print_messages = True):
         """Load raw data from JSON file.
         
         Args:
@@ -545,7 +546,8 @@ class DataStorage:
         
         raw_data_list = [RawDataMFCC.from_dict(frame_data) for frame_data in data]
         
-        print(f"  Loaded {len(raw_data_list)} frames from {filepath}")
+        if print_messages:
+            print(f"  Loaded {len(raw_data_list)} frames from {filepath}")
         return raw_data_list
 
     @staticmethod
@@ -633,11 +635,12 @@ class DataStorage:
         return generations
     
     @staticmethod
-    def save_data_binary(data, filepath: str):
+    def save_data_binary(data, filepath: str, print_messages =False):
         """Save data using pickle for faster loading (alternative to JSON)."""
         with open(filepath, 'wb') as f:
             pickle.dump(data, f)
-        print(f"    Saved data to {filepath} (binary format)")
+        if print_messages:
+            print(f"    Saved data to {filepath} (binary format)")
     
     @staticmethod
     def load_data_binary(filepath: str):

@@ -46,7 +46,7 @@ logger = setup_logger(name="main")
 
 
 
-def assign_recordings_to_purposes(data_dir="Data", train_percent=0.4, hmm_percent=0.3, test_percent=0.3):
+def assign_recordings_to_purposes(data_dir="Data", train_percent=0.5, hmm_percent=0.3, test_percent=0.2):
     """Assign entire recordings to different purposes based on percentages."""
     
     processed_dir = Path(data_dir) / "Processed"
@@ -100,7 +100,7 @@ def assign_recordings_to_purposes(data_dir="Data", train_percent=0.4, hmm_percen
     return recording_assignments
 
 
-def process_recordings_by_purpose(recording_assignments, output_base_dir="Data"):
+def process_recordings_by_purpose(recording_assignments, output_base_dir="Data", print_progress=False):
     """Process recordings according to their assigned purposes."""
     
     if not recording_assignments:
@@ -136,7 +136,8 @@ def process_recordings_by_purpose(recording_assignments, output_base_dir="Data")
         
         for recording_path, word_name in recordings:
             recording_name = recording_path.stem
-            print(f"  Processing: {word_name}/{recording_name}")
+            if print_progress:
+                print(f"  Processing: {word_name}/{recording_name}")
             
             try:
                 # Process entire recording for this purpose
@@ -168,7 +169,8 @@ def process_recordings_by_purpose(recording_assignments, output_base_dir="Data")
                     storage.save_raw_data(frames, recording_output_dir / "test_frames.json")
                     storage.save_data_binary(frames, recording_output_dir / "test_frames.pkl")
                 
-                print(f"    Generated {len(frames)} frames for {purpose}")
+                if print_progress:
+                    print(f"    Generated {len(frames)} frames for {purpose}")
                 
             except Exception as e:
                 print(f"    Error processing {recording_name}: {e}")
@@ -474,7 +476,10 @@ def main():
             print("Exiting...")
             return
         
-        recording_assignments = assign_recordings_to_purposes(data_dir)
+        recording_assignments = assign_recordings_to_purposes(data_dir,
+                                                              train_percent = 0.3,
+                                                              hmm_percent=0.5, 
+                                                              test_percent=0.2)
         
         if not recording_assignments:
             print("Failed to assign recordings. Exiting...")
@@ -515,7 +520,7 @@ def main():
         centroids, generations = create_codevector_from_frames(
             all_train_frames, 
             codevector_output_dir,
-            centroids_quantity=64,
+            centroids_quantity=256,
             max_iterations=100,
             # epsilon=0.001,
             type_distance=ITAKURA

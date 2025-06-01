@@ -5,4 +5,7 @@
 Prompt/
 test.py
 CodeVector/__pycache__/
+HMM/__pycache__/
 Data/CodeVector/*.png
+test_global.py
+Data/Plots/confusion_matrix.png

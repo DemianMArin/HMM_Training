@@ -78,13 +78,14 @@ def itakura_saito_distance(auto_coeff_raw: np.ndarray, lpc_centroid: np.ndarray)
 
     return abs(distance)
 
-
-def euclidian_distance(lsf_coeff_raw: np.ndarray, lsf_centroid: np.ndarray) -> float:
-    if len(lsf_coeff_raw) !=  len(lsf_centroid):
+# Used for LSF and MFCC
+def euclidian_distance(vec1: np.ndarray, vec2: np.ndarray) -> float:
+    if len(vec1) !=  len(vec2):
         raise ValueError("Vectors must be of size 13.")
 
-    distance = np.linalg.norm(np.array(lsf_coeff_raw) - np.array(lsf_centroid))
+    distance = np.linalg.norm(np.array(vec1) - np.array(vec2))
     return distance
+
 
 
 def new_epsilon_centroids(centroids: List[CentroidData], alpha1: float = 1.01, alpha2: float = 0.99) -> List[CentroidData]:
