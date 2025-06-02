@@ -255,30 +255,15 @@ def hmm_training(observations: List[np.ndarray], N: int = 4, M: int = 256,
     num_recordings = len(observations)
     
     # Initialize parameters as specified in pseudo-code
-    # pi_matrix = np.array([0.97, 0.02, 0.005, 0.005])
-    pi_matrix = np.array([0.99, 0.006, 0.002, 0.002])
-
+    pi_matrix = np.array([0.97, 0.02, 0.005, 0.005])
     
     # Transition matrix A (left-to-right topology)
-    # a_matrix = np.array([
-    #     [0.6, 0.4, 0.0, 0.0],
-    #     [0.0, 0.6, 0.4, 0.0],
-    #     [0.0, 0.0, 0.6, 0.4],
-    #     [0.0, 0.0, 0.0, 1.0]
-    # ])
-    # a_matrix = np.array([
-    #     [0.7, 0.3, 0.0, 0.0],
-    #     [0.0, 0.7, 0.3, 0.0],
-    #     [0.0, 0.0, 0.7, 0.3],
-    #     [0.0, 0.0, 0.0, 1.0]
-    # ])
     a_matrix = np.array([
-        [0.555, 0.445, 0.0, 0.0],
-        [0.0, 0.555, 0.445, 0.0],
-        [0.0, 0.0, 0.555, 0.445],
+        [0.6, 0.4, 0.0, 0.0],
+        [0.0, 0.6, 0.4, 0.0],
+        [0.0, 0.0, 0.6, 0.4],
         [0.0, 0.0, 0.0, 1.0]
     ])
-
     
     # Emission matrix B (uniform initialization)
     b_matrix = np.full((N, M), 1.0/M)
@@ -410,7 +395,7 @@ def hmm_training(observations: List[np.ndarray], N: int = 4, M: int = 256,
                     for recording in range(num_recordings):
                         log_xi = log_xi_list[recording]
                         total_time = log_xi.shape[2]
-                        for timestep in range(total_time):
+                        for timestep in range(total_time): 
                             if log_xi[origin_state, destination_state, timestep] != float('-inf'):
                                 log_num_terms.append(log_xi[origin_state, destination_state, timestep])
                     
@@ -438,19 +423,28 @@ def hmm_training(observations: List[np.ndarray], N: int = 4, M: int = 256,
                 for symbol in range(M):
                     # Calculate numerator (sum of gamma when observing this symbol)
                     log_num_terms = []
+                    symbol_ = 60
                     for recording in range(num_recordings):
                         log_gamma = log_gamma_list[recording]
                         total_time = log_gamma.shape[1]
+                        current_len = 0
                         for timestep in range(total_time):
                             if (observations[recording][timestep] == symbol and 
                                 log_gamma[state, timestep] != float('-inf')):
                                 log_num_terms.append(log_gamma[state, timestep])
+                                current_len = len(log_num_terms)
+
+                            # if timestep == total_time-1 and recording == 0 and state == 0 and symbol == symbol_:
+                            #     logger.info(f"time: {timestep}")
+                                # logger.info(f"identified gamma: {current_len}, symbol: {symbol}")
+
                     
                     if log_num_terms:
                         log_numerator = log_sum_exp(np.array(log_num_terms))
                         log_b_new[state, symbol] = log_numerator - log_denominator
                     else:
-                        log_b_new[state, symbol] = safe_log(1e-10)  # Small value to avoid -inf
+                        log_b_new[state, symbol] = safe_log(1e-20)  # Small value to avoid -inf
+                        # log_b_new[state, symbol] = float('-inf')  # Or use a more principled smoothing
         
         log_b_matrix = log_b_new
         

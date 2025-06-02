@@ -5,6 +5,16 @@ from tqdm import tqdm
 import os
 import librosa
 import soundfile as sf
+from typing import Tuple
+from pathlib import Path
+
+# INFO: Should'nt be used. But it is easier this way to fix problems with different dimensions when plotting
+def pad_vector_with_zeros(vector1: np.ndarray, vector2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    if len(vector1) != len(vector2):
+        padded_vector2 = np.pad(vector2, (0, len(vector1) - len(vector2)), mode='constant', constant_values=0)
+        return vector1, padded_vector2
+    else:
+        return vector1, vector2
 
 
 def display_graphs(x_space: np.ndarray, y_space1: np.ndarray, y_space2: np.ndarray, y_space3: np.ndarray, y_space4: np.ndarray, idx: list):
@@ -15,30 +25,41 @@ def display_graphs(x_space: np.ndarray, y_space1: np.ndarray, y_space2: np.ndarr
     y_space4 = y_space4.reshape(-1,1)
 
 
-    print(f"{x_space.shape} {y_space1.shape} {y_space2.shape} {y_space3.shape} {y_space4.shape}")
+    print(f"{x_space.shape} {y_space1.shape} {y_space2.shape} {y_space3.shape} y4: {y_space4.shape}")
     fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(5, 1, figsize=(10, 12), sharex=True)
+
+    x_space, y_space1 = pad_vector_with_zeros(x_space.flatten(), y_space1.flatten())
 
     ax1.plot(x_space, y_space1)
     ax1.set_title('Original')
     ax1.set_ylabel('Voltage')
 
+    x_space, y_space2 = pad_vector_with_zeros(x_space.flatten(), y_space2.flatten())
+
     ax2.plot(x_space, y_space2)
     ax2.set_title('Filtered')
     ax2.set_ylabel('Voltage')
 
+    x_space, y_space3 = pad_vector_with_zeros(x_space.flatten(), y_space3.flatten())
+
     ax3.plot(x_space, y_space3)
-    ax3.set_title('Hamming')
+    ax3.axvline(x=x_space[idx[0]], color='r', linestyle='--')
+    ax3.axvline(x=x_space[idx[1]], color='r', linestyle='--')
+    ax3.set_title('Power & ZCR')
     ax3.set_ylabel('Voltage')
 
-    ax4.plot(x_space, y_space3)
-    ax4.axvline(x=x_space[idx[0]], color='r', linestyle='--')
-    ax4.axvline(x=x_space[idx[1]], color='r', linestyle='--')
-    ax4.set_title('Power & ZCR')
+    x_space_ = x_space[idx[0]:idx[1]].flatten()
+    y_space4 = y_space4.flatten()
+    x_space_, y_space4 = pad_vector_with_zeros(x_space_,y_space4)
+
+    ax4.plot(x_space_, y_space4)
+    ax4.set_title('Trimmed')
     ax4.set_ylabel('Voltage')
 
-    ax5.plot(x_space[idx[0]:idx[1]], y_space4)
-    ax5.set_title('Trimmed')
+    ax5.plot(x_space, y_space3)
+    ax5.set_title('Hamming')
     ax5.set_ylabel('Voltage')
+
 
 
     plt.tight_layout()
@@ -225,25 +246,27 @@ def slice_signal(signal: np.ndarray, framerate: int, nframes: int):
         power[i,0] = np.sum(frame_to_evalute**2)/len(frame_to_evalute)
 
     # max_zcr = 0.08*np.max(zcr) # Thresholds
-    # max_power = 0.03*np.max(power)
-    max_zcr = 0.001*np.max(zcr) # Thresholds
-    max_power = 0.001*np.max(power)
+    max_power = 0.015*np.max(power)
 
 
-    zcr_upper_array = np.where(zcr>max_zcr, 1, 0)
+    # zcr_upper_array = np.where(zcr>max_zcr, 1, 0)
     power_upper_array = np.where(power>max_power, 1, 0)
 
     # If the frame has zcr and power greater than the Thresholds
     # then the frame will stay
-    zcr_and_power_upper = np.logical_and(zcr_upper_array, power_upper_array).astype(int)
+    # zcr_and_power_upper = np.logical_and(zcr_upper_array, power_upper_array).astype(int)
 
-    if np.any(zcr_and_power_upper==1):
-        first = np.where(zcr_and_power_upper[:,0]==1)[0][0]
-        last = np.where(zcr_and_power_upper[:,0]==1)[0][-1]
+    # if np.any(zcr_and_power_upper==1):
+    if np.any(power_upper_array==1):
+        # first = np.where(zcr_and_power_upper[:,0]==1)[0][0]
+        # last = np.where(zcr_and_power_upper[:,0]==1)[0][-1]
+        first = np.where(power_upper_array[:,0]==1)[0][0]
+        last = np.where(power_upper_array[:,0]==1)[0][-1]
+
     else:
         print("No 1 founded in ZCR and Power")
         first = 0
-        last = len(zcr_upper_array)
+        last = len(power_upper_array)
 
     start_index_trimmed_sampled = first*samples_per_10ms
     finish_index_trimmed_sampled = last*samples_per_10ms
@@ -263,9 +286,12 @@ def slice_signal(signal: np.ndarray, framerate: int, nframes: int):
       }
     return output
 
-def do_preemphasis(path: str, output_path: str, display_graphs_allow=False, save_to_file=False, print_messages = False):
+def do_preemphasis(path: str, output_path: str, display_graphs_allow=False, save_to_file=False, print_messages = False, display_filename=False):
     # Check and convert metadata if needed
     check_metadata(path + ".wav", print_messages=print_messages)
+
+    if display_filename:
+        print(f" Processing: {Path(path).name}")
     
     signal_data = open_file(path, print_path=False)
     frames = signal_data["frames"]
@@ -280,13 +306,13 @@ def do_preemphasis(path: str, output_path: str, display_graphs_allow=False, save
     output = filter_signal(signal_raw, nframes)
     signal_filtered = output["filtered_signal"]
 
-    output = hamming_window(signal_filtered, nframes)
-    signal_hamming = output["hamming_signal"]
-
-    output = slice_signal(signal_hamming, framerate, nframes)
+    output = slice_signal(signal_filtered, framerate, nframes)
     trimmed_signal = output["trimmed_signal"]
     start_idx = output["start_idx"]
     finish_idx = output["finish_idx"]
+
+    output = hamming_window(trimmed_signal, trimmed_signal.shape[0])
+    signal_hamming = output["hamming_signal"]
 
 
     if (display_graphs_allow == True):
@@ -324,4 +350,4 @@ if __name__ == "__main__":
             input_file_path = os.path.join(input_folder_path, base_name)
             output_file_path = os.path.join(output_folder_path, base_name)
             
-            do_preemphasis(input_file_path, output_file_path, display_graphs_allow=False, save_to_file=True, print_messages=True)
+            do_preemphasis(input_file_path, output_file_path, display_graphs_allow=False, save_to_file=True, print_messages=True, display_filename=False)

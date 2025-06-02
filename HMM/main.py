@@ -164,7 +164,7 @@ def train_hmm(show_progress=True, max_iterations=100):
         return None
 
 
-def test():
+def test(show_progress=False):
     """Test trained HMM models on test data."""
     print("Loading trained HMM models...")
     all_hmm = DataStorageHMM.load_all_hmms()
@@ -191,7 +191,7 @@ def test():
     print(f"Testing on {len(filtered_test_recordings)} words: {list(filtered_test_recordings.keys())}")
     
     # Perform testing
-    true_labels, predicted_labels = test_hmm(all_hmm, filtered_test_recordings, show_progress=True)
+    true_labels, predicted_labels = test_hmm(all_hmm, filtered_test_recordings, show_progress=False)
     
     # Create and save confusion matrix
     create_confusion_matrix(true_labels, predicted_labels)
@@ -265,7 +265,7 @@ if __name__ == "__main__":
             demo_usage()
         elif sys.argv[1].lower() == 'train':
             # Run HMM training if 'train' parameter is provided
-            train_hmm(show_progress=False, max_iterations=200)
+            train_hmm(show_progress=False, max_iterations=2)
         elif sys.argv[1].lower() == 'test':
             # Run HMM testing if 'test' parameter is provided
             test()
