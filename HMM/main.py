@@ -130,7 +130,7 @@ def load_mfcc_centroids(base_dir="../Data", print_messages=True):
     return centroids
 
 
-def train_hmm(show_progress=True, max_iterations=100):
+def train_hmm(show_progress=True, max_iterations=100, load_initial_params=False):
     """Train HMM using Baum-Welch algorithm for all words"""
     print("Starting HMM training for all words...")
     try:
@@ -148,7 +148,7 @@ def train_hmm(show_progress=True, max_iterations=100):
             print(f"\nTraining HMM for word: '{word_name}' with {len(word_recordings)} recordings")
             
             # Perform training and save
-            hmm_model = training_with_save(word_recordings, centroids, word_name, max_iterations = max_iterations, show_progress=show_progress)
+            hmm_model = training_with_save(word_recordings, centroids, word_name, max_iterations = max_iterations, show_progress=show_progress, load_initial_params=load_initial_params)
             trained_hmms.append(hmm_model)
             
             print(f"Model saved for word: '{hmm_model.word}'")
@@ -265,7 +265,7 @@ if __name__ == "__main__":
             demo_usage()
         elif sys.argv[1].lower() == 'train':
             # Run HMM training if 'train' parameter is provided
-            train_hmm(show_progress=False, max_iterations=2)
+            train_hmm(show_progress=True, max_iterations=2)
         elif sys.argv[1].lower() == 'test':
             # Run HMM testing if 'test' parameter is provided
             test()

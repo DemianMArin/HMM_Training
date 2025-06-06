@@ -559,12 +559,13 @@ class DataStorage:
         print(f"Saved {len(centroids)} centroids to {filepath}")
     
     @staticmethod
-    def load_centroids(filepath: str) -> List[CentroidData]:
+    def load_centroids(filepath: str, print_messages=True) -> List[CentroidData]:
         """Load centroids from JSON file."""
         with open(filepath, 'r') as f:
             data = json.load(f)
         centroids = [CentroidData.from_dict(centroid_data) for centroid_data in data]
-        print(f"Loaded {len(centroids)} centroids from {filepath}")
+        if print_messages:
+            print(f"Loaded {len(centroids)} centroids from {filepath}")
         return centroids
     
     @staticmethod
@@ -601,12 +602,13 @@ class DataStorage:
         print(f"Saved {len(centroids)} centroids to {filepath}")
     
     @staticmethod
-    def load_centroids(filepath: str) -> List[CentroidDataMFCC]:
+    def load_centroids(filepath: str, print_messages=True) -> List[CentroidDataMFCC]:
         """Load centroids from JSON file."""
         with open(filepath, 'r') as f:
             data = json.load(f)
         centroids = [CentroidDataMFCC.from_dict(centroid_data) for centroid_data in data]
-        print(f"Loaded {len(centroids)} centroids from {filepath}")
+        if print_messages:
+            print(f"Loaded {len(centroids)} centroids from {filepath}")
         return centroids
     
     @staticmethod

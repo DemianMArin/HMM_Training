@@ -199,19 +199,22 @@ def calculate_log_beta(timestep: int, origin_state: int, log_beta: np.ndarray, r
     else:
         log_beta[origin_state, timestep] = float('-inf')
 
-# Update the training function to save HMM models
-def training_with_save(word_recordings: List[RawDataMFCC], centroids: List[CentroidDataMFCC], word_name: str, max_iterations = 100, show_progress=True) -> HMMTrained:
-    """
-    Main training function that coordinates the HMM training process and saves the model.
-    
-    Args:
-        word_recordings: List of RawDataMFCC objects for one word
-        centroids: List of CentroidDataMFCC objects (code vector)
-        word_name: Name of the word being trained
-    
-    Returns:
-        HMMTrained: Trained HMM model
-    """
+"""
+Main training function that coordinates the HMM training process and saves the model.
+
+Args:
+    word_recordings: List of RawDataMFCC objects for one word
+    centroids: List of CentroidDataMFCC objects (code vector)
+    word_name: Name of the word being trained
+    max_iterations: Maximum number of training iterations
+    show_progress: Whether to print progress information
+    load_initial_params: Whether to attempt loading initial parameters from saved model
+
+Returns:
+    HMMTrained: Trained HMM model
+"""
+def training_with_save(word_recordings: List[RawDataMFCC], centroids: List[CentroidDataMFCC], word_name: str, max_iterations = 100, 
+                       show_progress=True, load_initial_params=False) -> HMMTrained:
     print("Converting recordings to observations...")
     observations = get_observations(word_recordings, centroids)
     
@@ -219,7 +222,15 @@ def training_with_save(word_recordings: List[RawDataMFCC], centroids: List[Centr
     print(f"Sequence lengths: {[len(obs) for obs in observations]}")
     
     print("Starting Baum-Welch training...")
-    A, B, pi = hmm_training(observations, N=4, M=len(centroids), max_iterations = max_iterations, show_progress=show_progress)
+    A, B, pi = hmm_training(
+        observations, 
+        N=4, 
+        M=len(centroids), 
+        max_iterations=max_iterations, 
+        show_progress=show_progress,
+        word_name=word_name,
+        load_initial_params=load_initial_params
+    )
     
     # Create HMM model object
     hmm_model = HMMTrained(
@@ -232,41 +243,82 @@ def training_with_save(word_recordings: List[RawDataMFCC], centroids: List[Centr
     )
     
     # Save the model
-    DataStorageHMM.save_hmm(hmm_model,print_messages=False)
+    DataStorageHMM.save_hmm(hmm_model, print_messages=False)
     
     return hmm_model
 
+"""
+Train HMM using Baum-Welch algorithm with proper log-space arithmetic.
 
+Args:
+    observations: List of observation sequences (each is np.ndarray of centroid indices)
+    N: Number of states
+    M: Number of symbols (centroids)
+    epsilon: Convergence threshold
+    max_iterations: Maximum number of iterations
+    show_progress: Whether to print progress information
+    word_name: Name of the word being trained (for loading initial parameters)
+    load_initial_params: Whether to attempt loading initial parameters from saved model
+
+Returns:
+    Tuple[np.ndarray, np.ndarray, np.ndarray]: (A, B, pi) matrices
+"""
 def hmm_training(observations: List[np.ndarray], N: int = 4, M: int = 256, 
-                epsilon: float = 1e-6, max_iterations: int = 100, show_progress = True) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Train HMM using Baum-Welch algorithm with proper log-space arithmetic.
-    
-    Args:
-        observations: List of observation sequences (each is np.ndarray of centroid indices)
-        N: Number of states
-        M: Number of symbols (centroids)
-        epsilon: Convergence threshold
-        max_iterations: Maximum number of iterations
-    
-    Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray]: (A, B, pi) matrices
-    """
+                epsilon: float = 1e-6, max_iterations: int = 100, show_progress = True, 
+                word_name: str = None, load_initial_params: bool = True) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     num_recordings = len(observations)
     
-    # Initialize parameters as specified in pseudo-code
-    pi_matrix = np.array([0.97, 0.02, 0.005, 0.005])
+    # Initialize parameters - try to load from saved model first
+    pi_matrix = None
+    a_matrix = None
+    b_matrix = None
     
-    # Transition matrix A (left-to-right topology)
-    a_matrix = np.array([
-        [0.6, 0.4, 0.0, 0.0],
-        [0.0, 0.6, 0.4, 0.0],
-        [0.0, 0.0, 0.6, 0.4],
-        [0.0, 0.0, 0.0, 1.0]
-    ])
+    if load_initial_params and word_name:
+        try:
+            # Construct path to the saved model directory
+            base_dir = "../Data/Eighty-five-percent_20"
+            saved_hmm = DataStorageHMM.load_hmm(word_name, base_dir)
+            
+            # Validate that the loaded model matches expected dimensions
+            if (saved_hmm.states == N and saved_hmm.symbols == M):
+                pi_matrix = saved_hmm.Pi.copy()
+                a_matrix = saved_hmm.A.copy()
+                b_matrix = saved_hmm.B.copy()
+                if show_progress:
+                    print(f"Loaded initial parameters from saved model for word '{word_name}'")
+            else:
+                if show_progress:
+                    print(f"Saved model dimensions ({saved_hmm.states} states, {saved_hmm.symbols} symbols) "
+                          f"don't match expected ({N} states, {M} symbols). Using default initialization.")
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            if show_progress:
+                print(f"Could not load saved model for word '{word_name}': {str(e)}. Using default initialization.")
+        except Exception as e:
+            if show_progress:
+                print(f"Unexpected error loading saved model for word '{word_name}': {str(e)}. Using default initialization.")
     
-    # Emission matrix B (uniform initialization)
-    b_matrix = np.full((N, M), 1.0/M)
+    # Use default initialization if loading failed or was not attempted
+    if pi_matrix is None:
+        pi_matrix = np.array([0.97, 0.02, 0.005, 0.005])
+        if show_progress:
+            print("Using default initial state probabilities")
+    
+    if a_matrix is None:
+        # Transition matrix A (left-to-right topology)
+        a_matrix = np.array([
+            [0.6, 0.4, 0.0, 0.0],
+            [0.0, 0.6, 0.4, 0.0],
+            [0.0, 0.0, 0.6, 0.4],
+            [0.0, 0.0, 0.0, 1.0]
+        ])
+        if show_progress:
+            print("Using default transition matrix")
+    
+    if b_matrix is None:
+        # Emission matrix B (uniform initialization)
+        b_matrix = np.full((N, M), 1.0/M)
+        if show_progress:
+            print("Using default emission matrix")
     
     # Convert to log space for numerical stability
     log_pi_matrix = safe_log(pi_matrix)
@@ -488,3 +540,4 @@ def hmm_training(observations: List[np.ndarray], N: int = 4, M: int = 256,
             b_matrix[i, :] = b_matrix[i, :] / row_sum
     
     return a_matrix, b_matrix, pi_matrix
+
