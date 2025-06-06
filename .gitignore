@@ -9,3 +9,4 @@ HMM/__pycache__/
 Data/CodeVector/*.png
 test_global.py
 Data/Plots/confusion_matrix.png
+__pycache__/

@@ -60,7 +60,7 @@ class DataStorageHMM:
             print(f"Saved HMM for word '{hmm.word}' to {filepath}")
     
     @staticmethod
-    def load_hmm(word: str, base_dir: str = "../Data/ResultsHMM") -> HMMTrained:
+    def load_hmm(word: str, base_dir: str = "../Data/ResultsHMM", print_messages=True) -> HMMTrained:
         """Load HMM model from JSON file."""
         filepath = os.path.join(base_dir, f"{word}.json")
         
@@ -68,11 +68,12 @@ class DataStorageHMM:
             data = json.load(f)
         
         hmm = HMMTrained.from_dict(data)
-        print(f"Loaded HMM for word '{word}' from {filepath}")
+        if print_messages:
+            print(f"Loaded HMM for word '{word}' from {filepath}")
         return hmm
     
     @staticmethod
-    def load_all_hmms(base_dir: str = "../Data/ResultsHMM") -> List[HMMTrained]:
+    def load_all_hmms(base_dir: str = "../Data/ResultsHMM",print_messages=True) -> List[HMMTrained]:
         """Load all HMM models from directory."""
         hmms = []
         
@@ -84,11 +85,12 @@ class DataStorageHMM:
             if filename.endswith('.json'):
                 word = filename[:-5]  # Remove .json extension
                 try:
-                    hmm = DataStorageHMM.load_hmm(word, base_dir)
+                    hmm = DataStorageHMM.load_hmm(word, base_dir, print_messages)
                     hmms.append(hmm)
                 except Exception as e:
                     print(f"Error loading HMM for word '{word}': {e}")
-        
-        print(f"Loaded {len(hmms)} HMM models total")
+
+        if print_messages:
+            print(f"Loaded {len(hmms)} HMM models total")
         return hmms
 
