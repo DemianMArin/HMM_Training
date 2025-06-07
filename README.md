@@ -111,29 +111,34 @@ python live_testing.py
 #### Forward-Backward Variables
 
 **Initialization:**
-```
-α₁(i) = π_i × b_i(O₁)
-β_T(i) = 1, for all states i
-```
+$$
+\alpha_{1}(i) = \pi_{i} * b_{i}(O_{1}) \\
 
+\beta_{T}(i) = 1, \text{ for all states i}
+$$
 **Recursion:**
-```
-α_t(i) = [∑ α_{t-1}(j) × a_{ij}] × b_i(O_t)
-β_t(i) = ∑ [a_{ij} × b_j(O_{t+1}) × β_{t+1}(j)]
-```
+$$
+\alpha_{t}(i) = [\sum_{j=1}^{N} \alpha_{t-1}(j) * a_{ij}] * b_{i}(O_{t}) \\
 
+\beta_t(i) = \sum_{j=1}^N [a_{ij} × b_j(O_{t+1}) × β_{t+1}(j)]
+$$
 #### Expectation Step
-```
-γ_t(i) = (α_t(i) × β_t(i)) / P(O|λ)
-ξ_t(i,j) = (α_t(i) × a_{ij} × b_j(O_{t+1}) × β_{t+1}(j)) / P(O|λ)
-```
-
+$$
+\gamma_{t}(i) = \frac{\alpha_{t}(i) \times \beta_{t}(i)}{P(O|\lambda)}
+$$
+$$
+\xi_{t}(i,j) = \frac{\alpha_{t}(i) \times a_{ij} \times b_{j}(O_{t+1}) \times \beta_{t+1}(j)}{P(O|\lambda)}
+$$
 #### Maximization Step
-```
-π_i = sum of γ₁(i) across sequences / number of sequences
-a_{ij} = sum of ξ_{ij} across all t,sequences / sum of γ_t(i) across all t,sequences
-b_j(k) = sum of γ_t(j) when O_t=k / sum of γ_t(j) across all t,sequences
-```
+$$
+\pi_{i} = \frac{\text{sum of } \gamma_{1}(i) \text{ across all training sequences}}{\text{number of training sequences}}
+$$
+$$
+a_{ij} = \frac{\text{sum of } \xi_{ij} \text{ across al $t$ and all sequences}}{\text{sum of $\gamma_{t}(i)$ across all $t$ and all sequences}}
+$$
+$$
+b_j(k) = \frac{\text{ sum  $y_t(j)$ when $O_{t}=k$, across all sequences}}{\text{sum of $\gamma_{t}(j)$ across all $t$ and all sequences}}
+$$
 
 ## ⚠️ Known Issues
 
