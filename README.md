@@ -111,25 +111,32 @@ python live_testing.py
 #### Forward-Backward Variables
 
 **Initialization:**
+
 $$
 \alpha_{1}(i) = \pi_{i} * b_{i}(O_{1}) \\
 
 \beta_{T}(i) = 1, \text{ for all states i}
 $$
+
 **Recursion:**
+
 $$
 \alpha_{t}(i) = [\sum_{j=1}^{N} \alpha_{t-1}(j) * a_{ij}] * b_{i}(O_{t}) \\
 
 \beta_t(i) = \sum_{j=1}^N [a_{ij} × b_j(O_{t+1}) × β_{t+1}(j)]
 $$
+
 #### Expectation Step
+
 $$
 \gamma_{t}(i) = \frac{\alpha_{t}(i) \times \beta_{t}(i)}{P(O|\lambda)}
 $$
 $$
 \xi_{t}(i,j) = \frac{\alpha_{t}(i) \times a_{ij} \times b_{j}(O_{t+1}) \times \beta_{t+1}(j)}{P(O|\lambda)}
 $$
+
 #### Maximization Step
+
 $$
 \pi_{i} = \frac{\text{sum of } \gamma_{1}(i) \text{ across all training sequences}}{\text{number of training sequences}}
 $$
