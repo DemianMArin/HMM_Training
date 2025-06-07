@@ -9,7 +9,6 @@ import json
 import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import List, Dict, Tuple, Union
-import pandas as pd
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import MaxNLocator
 import sys

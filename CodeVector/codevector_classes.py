@@ -5,6 +5,7 @@ Data classes for the codevector creation system.
 
 import numpy as np
 import librosa
+from spectrum import poly2lsf, lsf2poly
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Tuple
@@ -41,63 +42,6 @@ def setup_logger(name=__name__, level=logging.DEBUG):
     return logger
 
 logger = setup_logger(name="classes")
-
-# Try to import spectrum for LSF conversion
-try:
-    from spectrum import poly2lsf, lsf2poly
-except ImportError:
-    warnings.warn("spectrum package not found. Using alternative LSF conversion.")
-    # Alternative implementation if spectrum is not available
-    def poly2lsf(poly):
-        """Convert polynomial coefficients to line spectral frequencies."""
-        # This is a simplified version - for production use, install spectrum package
-        # pip install spectrum
-        order = len(poly) - 1
-        lsf = np.zeros(order)
-        # Placeholder implementation - replace with actual conversion
-        angles = np.arccos(np.clip(-poly[1:] / 2, -1, 1))
-        lsf = angles / np.pi
-        return lsf
-    
-    def lsf2poly(lsf):
-        """Convert line spectral frequencies to polynomial coefficients."""
-        # Placeholder implementation
-        order = len(lsf)
-        poly = np.zeros(order + 1)
-        poly[0] = 1
-        poly[1:] = -2 * np.cos(lsf * np.pi)
-        return poly
-
-
-    def verify_calculations(self):
-        """Verify that frame calculations are correct."""
-        issues = []
-        
-        # Check raw samples
-        if len(self.raw_samples) == 0:
-            issues.append("no raw samples")
-        
-        # Check autocorrelation
-        if not np.any(self.autocorrelation_vector):
-            issues.append("autocorrelation is all zeros")
-        elif len(self.autocorrelation_vector) != 13:
-            issues.append(f"autocorrelation has wrong length: {len(self.autocorrelation_vector)}")
-        
-        # Check LPC
-        if not np.any(self.lpc_vector):
-            issues.append("lpc is all zeros")
-        elif len(self.lpc_vector) != 13:
-            issues.append(f"lpc has wrong length: {len(self.lpc_vector)}")
-        elif self.lpc_vector[0] != 1.0:
-            issues.append(f"lpc[0] should be 1.0, got {self.lpc_vector[0]}")
-        
-        # Check LSF
-        if not np.any(self.lsf_vector):
-            issues.append("lsf is all zeros")
-        elif len(self.lsf_vector) != 12:
-            issues.append(f"lsf has wrong length: {len(self.lsf_vector)}")
-        
-        return issues
 
 
 @dataclass

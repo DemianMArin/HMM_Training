@@ -10,12 +10,25 @@ from pathlib import Path
 
 # INFO: Should'nt be used. But it is easier this way to fix problems with different dimensions when plotting
 def pad_vector_with_zeros(vector1: np.ndarray, vector2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    if len(vector1) != len(vector2):
-        padded_vector2 = np.pad(vector2, (0, len(vector1) - len(vector2)), mode='constant', constant_values=0)
-        return vector1, padded_vector2
-    else:
-        return vector1, vector2
-
+   len1, len2 = len(vector1), len(vector2)
+   
+   if len1 != len2:
+       if len1 > len2:
+           # Pad vector2 to match vector1's length
+           diff = len1 - len2
+           left_pad = diff // 2
+           right_pad = diff - left_pad
+           padded_vector2 = np.pad(vector2, (left_pad, right_pad), mode='constant', constant_values=0)
+           return vector1, padded_vector2
+       else:
+           # Pad vector1 to match vector2's length
+           diff = len2 - len1
+           left_pad = diff // 2
+           right_pad = diff - left_pad
+           padded_vector1 = np.pad(vector1, (left_pad, right_pad), mode='constant', constant_values=0)
+           return padded_vector1, vector2
+   else:
+       return vector1, vector2
 
 def display_graphs(x_space: np.ndarray, y_space1: np.ndarray, y_space2: np.ndarray, y_space3: np.ndarray, y_space4: np.ndarray, idx: list):
     x_space = x_space.reshape(-1,1)
@@ -26,7 +39,7 @@ def display_graphs(x_space: np.ndarray, y_space1: np.ndarray, y_space2: np.ndarr
 
 
     print(f"{x_space.shape} {y_space1.shape} {y_space2.shape} {y_space3.shape} y4: {y_space4.shape}")
-    fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(5, 1, figsize=(10, 12), sharex=True)
+    fig, (ax1, ax2, ax4, ax5) = plt.subplots(4, 1, figsize=(10, 12), sharex=True)
 
     x_space, y_space1 = pad_vector_with_zeros(x_space.flatten(), y_space1.flatten())
 
@@ -37,16 +50,12 @@ def display_graphs(x_space: np.ndarray, y_space1: np.ndarray, y_space2: np.ndarr
     x_space, y_space2 = pad_vector_with_zeros(x_space.flatten(), y_space2.flatten())
 
     ax2.plot(x_space, y_space2)
+    ax2.axvline(x=x_space[idx[0]], color='r', linestyle='--')
+    ax2.axvline(x=x_space[idx[1]], color='r', linestyle='--')
     ax2.set_title('Filtered')
     ax2.set_ylabel('Voltage')
 
     x_space, y_space3 = pad_vector_with_zeros(x_space.flatten(), y_space3.flatten())
-
-    ax3.plot(x_space, y_space3)
-    ax3.axvline(x=x_space[idx[0]], color='r', linestyle='--')
-    ax3.axvline(x=x_space[idx[1]], color='r', linestyle='--')
-    ax3.set_title('Power & ZCR')
-    ax3.set_ylabel('Voltage')
 
     x_space_ = x_space[idx[0]:idx[1]].flatten()
     y_space4 = y_space4.flatten()
@@ -59,8 +68,6 @@ def display_graphs(x_space: np.ndarray, y_space1: np.ndarray, y_space2: np.ndarr
     ax5.plot(x_space, y_space3)
     ax5.set_title('Hamming')
     ax5.set_ylabel('Voltage')
-
-
 
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.3)
