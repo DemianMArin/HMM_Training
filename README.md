@@ -113,14 +113,18 @@ python live_testing.py
 **Initialization:**
 
 $$
-\alpha_{1}(i) = \pi_{i} * b_{i}(O_{1}) \\
+\alpha_{1}(i) = \pi_{i} * b_{i}(O_{1}) 
+$$
+$$
 \beta_{T}(i) = 1, \text{ for all states i}
 $$
 
 **Recursion:**
 
 $$
-\alpha_{t}(i) = [\sum_{j=1}^{N} \alpha_{t-1}(j) * a_{ij}] * b_{i}(O_{t}) \\
+\alpha_{t}(i) = [\sum_{j=1}^{N} \alpha_{t-1}(j) * a_{ij}] * b_{i}(O_{t})
+$$
+$$
 \beta_t(i) = \sum_{j=1}^N [a_{ij} × b_j(O_{t+1}) × β_{t+1}(j)]
 $$
 
